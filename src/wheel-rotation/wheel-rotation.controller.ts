@@ -39,9 +39,9 @@ export class WheelRotationController {
   }
 
   @Post()
-  async startWheel(): Promise<string> {
+  async startWheel(): Promise<{ id: string }> {
     const wheelRotation = await this.wheelRotationService.create();
-    return wheelRotation.id.toString();
+    return { id: wheelRotation.id };
   }
 
   @Sse('sse/result')

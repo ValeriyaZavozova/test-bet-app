@@ -11,7 +11,10 @@ export class WheelRotationRepository {
   ) {}
 
   getAll(): Promise<WheelRotation[]> {
-    return this.wheelRotationRepository.createQueryBuilder().getMany();
+    return this.wheelRotationRepository
+      .createQueryBuilder('rotation')
+      .orderBy('rotation.startedAt', 'DESC')
+      .getMany();
   }
 
   getById(id: string): Promise<WheelRotation[]> {

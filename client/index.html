@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html></html>
+<head>
+  <title>Rotate the wheel</title>
+  <style>
+    .wheel-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
+    }
+    .wheel {
+      animation: none;
+    }
+    .history {
+      display: flex;
+      flex-direction: column;
+      margin-top: 50px;
+      align-items: center;
+    }
+    .history-item {
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .rotate-button {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 16px;
+      background-color: green;
+      color: white;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wheel-container">
+    <img id="wheel" class="wheel" src="wheel.svg" alt="Wheel" width="200" height="200">
+    <button class="rotate-button" onclick="rotateWheel()">Rotate!</button>
+  </div>
+  <div id="rotation-history" class="history">
+  </div>
+  <script>
+    // create history record
+    function createHistoryRecord(result, endedAt) {
+      const date = Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }).format(new Date(endedAt));
+      const div = document.createElement("div");
+      div.innerHTML = `Wheel rotation result is <b>${result}</b> received at <b>${date}</b>`;
+      div.className = "history-item";
+      return div;
+    }
+
+    // subscribe to the server-sent events
+    let currentWheelId = null;
+
+    const eventSource = new EventSource("/wheel-rotation/sse/result");
+    eventSource.onopen = () => {
+      console.log("Connection opened");
+    };
+    eventSource.addEventListener('rotation-result', (event) => {
+      console.log("Message received:", event.data);
+      const data = JSON.parse(event.data);
+      if (currentWheelId !== data.id) {
+        return;
+      }
+      wheel.style.animation = 'none';
+      const history = document.getElementById("rotation-history");
+      const item = createHistoryRecord(data.result, data.endedAt);
+      history.prepend(item);
+    });
+
+
+    // fetch the history of wheel rotation
+    function fetchHistory() {
+      fetch("/wheel-rotation")
+        .then(response => response.json())
+        .then(data => {
+          const history = document.getElementById("rotation-history");
+          history.innerHTML = "";
+          data.forEach(item => {
+            const itemRecord = createHistoryRecord(item.result, item.endedAt);
+            history.appendChild(itemRecord);
+          });
+        })
+        .catch(error => {
+          console.error("Error:", error);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchHistory();
+    });
+
+    // rotate the wheel
+    async function rotateWheel() {
+      var spinner = document.getElementById("spinner");
+      wheel.style.animation = "spin 2s linear infinite";
+
+      try {
+        const response = await fetch("/wheel-rotation", { method: "POST" })
+        if (!response.ok) {
+          throw new Error("Failed to rotate the wheel");
+        }
+        const data = await response.json();
+        console.log("Wheel rotation id:", data.id);
+        currentWheelId = data.id;
+      } catch (error) {
+        console.error("Error:", error);
+        wheel.style.animation = "none";
+      }
+    }
+  </script>
+</body>
+</html>
