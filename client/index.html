@@ -41,7 +41,7 @@
 <body>
   <div class="wheel-container">
     <img id="wheel" class="wheel" src="wheel.svg" alt="Wheel" width="200" height="200">
-    <button class="rotate-button" onclick="rotateWheel()">Rotate!</button>
+    <button id="rotate-button" class="rotate-button" onclick="rotateWheel()">Rotate!</button>
   </div>
   <div id="rotation-history" class="history">
   </div>
@@ -80,6 +80,7 @@
       const history = document.getElementById("rotation-history");
       const item = createHistoryRecord(data.result, data.endedAt);
       history.prepend(item);
+      document.getElementById("rotate-button").disabled = false;
     });
 
 
@@ -106,8 +107,9 @@
 
     // rotate the wheel
     async function rotateWheel() {
-      var spinner = document.getElementById("spinner");
+      var wheel = document.getElementById("wheel");
       wheel.style.animation = "spin 2s linear infinite";
+      document.getElementById("rotate-button").disabled = true;
 
       try {
         const response = await fetch("/wheel-rotation", { method: "POST" })
