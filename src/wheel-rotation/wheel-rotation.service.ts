@@ -4,7 +4,7 @@ import { generateRandomNumberWithDelay } from 'src/utils/random';
 import { WheelRotationRepository } from './wheel-rotation.repository';
 import { SseEventName, SseService } from '../sse/sse.service';
 
-const MIN_PROCESSING_TIME_SEC = 0;
+const MIN_PROCESSING_TIME_SEC = 1;
 const MAX_PROCESSING_TIME_SEC = 5;
 
 @Injectable()
